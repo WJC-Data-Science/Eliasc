@@ -1,0 +1,76 @@
+---
+title: "Case Study 2"
+output: 
+  html_document: 
+    keep_md: true
+---
+#Background
+I learned several things while making these plots. I learned house to use the geom_path() function in ggplot. I also leared how to use the group_by() funciton several different ways. Be able to change the legend titles was new to me as well.I believe this task gave me an overall better unerstanding of how tidyverse and ggplot2 are connected
+
+#Images
+```{r}
+library(ggplot2)
+library(gapminder)
+library(dplyr)
+
+head(gapminder)
+
+mydata <- filter(gapminder, country != "Kuwait")
+
+mydata
+
+#Graph #1
+ggplot(data = mydata) +
+  geom_point(mapping = aes(x = lifeExp, y = gdpPercap,
+                           size = pop/100000, 
+                           color = continent)) +
+  xlab("Life Expectancy") +
+  ylab("GPD per Capita") +
+  scale_y_continuous(trans = "sqrt") +
+  scale_size_continuous(name = "Population 100k") +
+  facet_wrap(~year, ncol = 12) +
+  theme_bw() 
+
+ggsave(
+  filename = "graph1.png",
+  plot = last_plot(),
+  width = 15,
+  units = c("in"),
+  dpi = 300
+)
+
+#Graph #2
+graph2_data <- mydata %>%
+  select(continent,year, gdpPercap, pop) %>%
+  group_by(continent, year) %>%
+  summarize( gdp =weighted.mean(gdpPercap, pop),sum = sum(pop))
+graph2_data
+
+ggplot(data = mydata) +
+  geom_point(mapping = aes(x = year, y = gdpPercap, 
+                            size = pop/100000, 
+                            color = continent)) +
+  geom_path(mapping = aes(x = year, y = gdpPercap, color = continent, group = country)) +
+  geom_point(data = graph2_data, mapping = aes(x = year, y = gdp, size = sum/100000)) +
+  geom_line(data = graph2_data, mapping = aes(x = year, y = gdp)) +
+  xlab("Year") +
+  ylab("GPD per Captia") +
+  scale_size_continuous(name = "Population 100k") +
+  facet_wrap(~continent, ncol = 5) +
+  theme_bw()
+
+ggsave(
+  filename = "graph2.png",
+  plot = last_plot(),
+  width = 15,
+  units = c("in"),
+  dpi = 300
+)
+
+  
+ggplot(data = graph2_data) +
+  geom_point(data = graph2_data, mapping = aes(x = year, y = gdp, size = sum)) +
+  geom_line(mapping = aes(x = year, y = gdp)) +
+  facet_wrap(~continent, ncol = 5)
+```
+
