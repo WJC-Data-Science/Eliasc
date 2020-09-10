@@ -1,0 +1,22 @@
+---
+title: "Data Import and ggplot2"
+output: 
+  html_document: 
+    keep_md: true
+---
+
+I learned how to import data from .csv and .xslv as well as how to label data inside a visualization. The thing I found most difficult was needing to know how to change the data type when necessary.
+
+```{r}
+library(tidyverse)
+download.file("https://github.com/fivethirtyeight/data/tree/master/mlb-elo", "https://projects.fivethirtyeight.com/mlb-api/mlb_elo.csv")
+
+mlb_elo <- read_csv("https://projects.fivethirtyeight.com/mlb-api/mlb_elo.csv")
+mlb_elo
+
+mlb_elo_kcr <- filter(mlb_elo, team1 == "KCR")
+
+write_csv(mlb_elo_kcr, "KCRoyals_Home_Games.csv")
+
+```
+
