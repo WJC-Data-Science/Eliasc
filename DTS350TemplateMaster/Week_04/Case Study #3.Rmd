@@ -1,0 +1,28 @@
+---
+title: "Case Study 3"
+output: html_document: 
+    keep_md: true
+---
+```{r}
+head(df_inch, 10)
+
+head(df_gender, 10)
+
+head(df_environment, 10)
+
+head(df_extra, 10)
+
+head(df_numbers, 10)
+```
+
+
+In regards to having students knowing about the need to reduce pollution, the younger students and the older students have the most knowledge. I would recommend we focus on the age group from 7-16. The graph "Age_comparison" shows that their is a dip in the middle of the age grous and thats where we should put most of our resources into.
+
+```{r}
+head(Twelve, 10)
+
+head(Older_than_twelve, 10)
+
+Age_comparison
+```
+
