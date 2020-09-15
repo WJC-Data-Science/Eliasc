@@ -1,0 +1,12 @@
+(Recorded by Brooks)
+
+We went through the data transformation part of the assignment. 
+-Chase found a library for the unit conversions.
+-We discussed the NA and NaN results in the table, and the different ways we filtered the data to deal with them
+
+Chase presented his case study.
+    -What challenges did we encounter?
+    -How do his results relate to the questions asked?
+
+We discussed the upcoming project
+    -The tasks seem to be increasingly open ended, which is cool.
