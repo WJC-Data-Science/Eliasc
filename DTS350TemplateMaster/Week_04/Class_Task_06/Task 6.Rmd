@@ -1,0 +1,69 @@
+---
+title: "Task 6"
+output: 
+  html_document:
+    keep_med: TRUE
+---
+```{r}
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+
+df_difference <- read_csv("difference-in-female-and-male-life-expectancy-at-birth.csv")
+df_difference2 <- df_difference %>% 
+  rename(female_minus_male = `Female minus male life expectancy at birth (HMD (2018) and others)`)
+
+df_difference2
+
+
+```
+```{r}
+library(directlabels)
+
+ggplot(data = df_difference2) +
+  geom_point(mapping = aes(x = Year, y = female_minus_male, color = Entity)) +
+  geom_path(mapping = aes(x = Year, y = female_minus_male, color = Entity)) +
+  #ggtitle("Difference in female and male life expectancy at birth, 1790 to 2014") +
+  labs(title = "Difference in female and male life expectancy at birth, 1790 to 2014") +
+  scale_y_continuous(breaks = seq(0,8,1), labels = c("0 Years","1 Years","2 Years","3 Years","4 Years","5 Years","6 Years","7 Years","8 Years"))  +
+  scale_x_continuous(breaks = c(1790, 1850, 1900, 1950, 2014)) +
+  geom_dl(aes(x = Year, y = female_minus_male, label = Entity), method = list(dl.combine("last.points")), cex = 0.8) +
+  theme_bw() +
+  theme(panel.grid.minor.x = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.major = element_line(linetype = "dashed"),
+        panel.grid.minor = element_blank(),
+        axis.title.y = element_blank(),
+        legend.position = "none")
+
+         
+```
+This graph is showing the difference in male and female life expectancy rates at birth from 1790 t0 2014. The graph has data from France, Sweden, the UK, and the United States.
+
+```{r}
+install.packages("devtools")
+library(devtools)
+
+devtools::install_github("drsimonj/ourworldindata")
+
+df <- ourworldindata::child_mortality
+
+
+head(df)
+view(df)
+
+df_us <- df %>% 
+  filter(country == "United States", year >= 1970)
+
+df_us
+
+child_morta <- ggplot(data = df_us) +
+  geom_point(mapping = aes(x = year, y = child_mort), col = "blue") +
+  geom_path(mapping = aes(x = year, y = child_mort),size = 0.3, col = "blue") +
+  ggtitle("United States Mortality Rate since 1970") +
+  theme_bw()
+
+child_morta
+
+```
+This graph shows the child mortality rate in the US since 1970. It is obvious to see that it has been steadily decreasing the past 50 years.
