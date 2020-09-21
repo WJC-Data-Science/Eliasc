@@ -1,0 +1,53 @@
+---
+title: "Case Study 4"
+output:
+  html_document:
+    keep_md: True
+code_folding: hide
+---
+
+```{r}
+library(nycflights13)
+library(tidyverse)
+library(ggplot2)
+
+df_flights <- nycflights13::flights
+df_flights
+
+q2 <- df_flights %>% 
+  filter(carrier == "DL") %>% 
+  group_by(origin) %>% 
+  summarise(avg_delay_time = mean(arr_delay, na.rm = TRUE))
+
+q2
+
+ggplot(data = q2, mapping = aes(x = origin, y = avg_delay_time)) +
+  geom_col(fill = "blue") +
+  ggtitle("Average arrival delay for Delta Airlines") +
+  theme_light()
+
+
+```
+Based on the data and graphic above, JFK obviously has the best chance to not expect and arrival delays while flying with Delta Airlines.
+
+
+```{r}
+q3 <- df_flights %>% 
+  filter(dest != "LGA") %>% 
+  group_by(dest) %>% 
+  summarise(avg_arrival_del = mean(arr_delay, na.rm = TRUE)) %>% 
+  arrange(avg_arrival_del)
+
+q3
+
+
+worst10 <- tail(q3, 10)
+
+worst10
+
+ggplot(data = worst10) +
+  geom_col(mapping = aes(fct_reorder(dest, avg_arrival_del), 
+                         y = avg_arrival_del, fill = dest))
+
+```
+For this question, I used the arrival delay time in order to judge which destination is the worst. I grouped the data by dest and took the average arrival delay. The results above show that destination CAE is the worst when judging by which airport has the highest chance of delaying your arrival.
