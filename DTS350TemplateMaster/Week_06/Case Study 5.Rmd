@@ -1,0 +1,80 @@
+---
+title: "Case Study 5"
+output: 
+  html_document:
+    keep_md: TRUE
+---
+## FiveThirtyEight Article
+In this article, they show the 33,000 gun deaths that happen each year and in which categories they fit in to. The categories are suicide, homocide, accidental/undetermined, mass shootings, terrorism, and shootings of police officers
+
+```{r}
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+
+download.file("https://raw.githubusercontent.com/fivethirtyeight/guns-data/master/full_data.csv", "full_data.csv")
+
+full_data <- read_csv("full_data.csv")
+
+head(full_data)
+view(full_data)
+
+
+```
+## Graphic to mimic article's findings
+```{r}
+male_suicide = full_data %>% 
+  filter(intent == "Suicide" & age >= 45)
+
+ggplot(data = male_suicide) +
+  geom_bar(mapping = aes(x = month, fill = sex), position = 'dodge') +
+  facet_wrap(~month)
+
+```
+This is a grpahic that reflects how the article stated that the male population far out weighs the females population in regards to total amount of suicides.
+
+
+
+### Customer's Concerns
+```{r}
+homicide <- full_data %>% 
+  filter(intent == "Homicide", age <= 30, race == "Black")
+
+ggplot(data = homicide) +
+  geom_bar(mapping = aes(x = month, fill = sex), position = 'dodge')+
+  facet_wrap(~month) +
+  ggtitle("Homicide Rates") +
+  theme_bw()
+
+
+
+
+suicide <- full_data %>% 
+  filter(intent == "Suicide", age <= 20, race == "White")
+
+ggplot(data = suicide) +
+  geom_bar(mapping = aes(x = month, fill = sex), position = 'dodge') +
+  facet_wrap(~month) +
+  ggtitle("Suicide Rates") +
+  theme_bw()
+
+
+undetermined <- full_data %>% 
+  filter(intent == "Undetermined")
+
+
+ggplot(data = undetermined) +
+  geom_bar(mapping = aes(x = month, fill = sex), position = 'dodge') +
+  facet_wrap(~month) +
+  ggtitle("Undetermined Rates") +
+  theme_bw()
+```
+## Homicide Image
+Looking at the data for homicides througout the months, I would recommmend the company to focus on the younger black populations during the summer and winter months
+
+## Suicide Image
+Looking at the data for suicides rates for the white population below 20 years old, I would recommend the company focuses on the spring months, especially April
+
+## Undetermined Image
+If the company was interested in focusing on undetermined cases, then they should devote their time in November for males and September for females.
+
