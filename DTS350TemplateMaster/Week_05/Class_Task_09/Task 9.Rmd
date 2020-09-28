@@ -1,0 +1,14 @@
+---
+title: "Task 9"
+output: 
+  html_document:
+    keep_md: true
+---
+## Section 1 - Strengths
+My stregnths in this class are being able to face a problem in regrards to coding and finding the necessary resources in order to fix the problem. If I have an idea in my head of how I want a visual to look like I know how to find the resources that will help me achieve that idea.
+
+## Section 2 - Improvements
+The area where I could improve the most is when given a data set asking the right questions in order to answer a problem. I find it difficult when someone just tells me to analyze the data rather than someone asking me to solve a specific question about it.
+
+## Section 3 - Goals & Path
+My main goals for this class is to become proficient in R and being capable of making several different types of visualizations. I want to be able to recieve a data set, clean it, and analyze it. I will achieve this by continuously doing all of the case studies and creating visualizations that answer questions to the data
