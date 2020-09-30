@@ -1,0 +1,105 @@
+---
+title: "Task 10"
+output: 
+  html_document:
+    keep_md: TRUE
+    code_folding: hide
+---
+```{r}
+library(ggplot2)
+library(dplyr)
+library(nycflights13)
+
+flights <- nycflights13::flights
+
+head(flights, 10)
+tail(flights, 10)
+
+nrow(flights)
+summary(flights)
+
+# There are 336776 number of rows in the data set
+# There are NA's in dep_time, dep_delay, arr_time, arr_delay, and air_time.
+
+
+fl_bp <- flights %>%
+  ggplot(aes(x = carrier, y = dep_delay))
+fl_sc <- flights %>%
+  filter(dep_time > 800, dep_time < 900) %>%
+  ggplot(aes(x = dep_time, y = dep_delay))
+
+fl_bp + geom_boxplot()
+
+fl_sc + geom_point()
+
+# Exercise 2
+
+fl_bp + geom_boxplot() + labs(title = "Departure Delay Boxplots by Carrier", x = "Carrier Abbreviation", y = "Departure Delay (miutes)")
+
+fl_sc + geom_point() + labs(title = "Departure Delay for Each Departure Time", x = "Departure Time", y = "Departure Delay (minutes)")
+
+
+# Exercise 3
+fl_bp + geom_boxplot() + 
+  labs(title = "Departure Delay Boxplots by Carrier", x = "Carrier Abbreviation", y = "Departure Delay (miutes)") +
+  coord_cartesian(ylim = c(50,100)) +
+  scale_y_continuous(breaks = c(60, 75, 90))
+
+
+fl_sc + geom_point() + 
+  labs(title = "Departure Delay for Each Departure Time", x = "Departure Time", y = "Departure Delay (minutes)") +
+  coord_cartesian(ylim = c(50,100)) +
+  scale_y_continuous(breaks = c(60, 75, 90))
+
+
+# Exercise 4
+fl_sc + geom_point(aes(color = origin)) + 
+  labs(title = "Departure Delay Boxplots by Carrier", x = "Carrier Abbreviation", y = "Departure Delay (miutes)") +
+  coord_cartesian(ylim = c(50,100)) +
+  scale_y_continuous(breaks = c(60, 75, 90)) +
+  scale_color_brewer(palette = "Set1")
+
+# Exercise 5
+fl_bp + geom_boxplot() + 
+  labs(title = "Departure Delay Boxplots by Carrier", x = "Carrier Abbreviation", y = "Departure Delay (miutes)") +
+  coord_cartesian(ylim = c(50,100)) +
+  scale_y_continuous(breaks = c(60, 75, 90)) +
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 35, hjust = 1))
+
+
+fl_sc + geom_point(aes(color = origin)) + 
+  labs(title = "Departure Delay Boxplots by Carrier", x = "Carrier Abbreviation", y = "Departure Delay (miutes)") +
+  coord_cartesian(ylim = c(50,100)) +
+  scale_y_continuous(breaks = c(60, 75, 90)) +
+  scale_color_brewer(palette = "Set1") +
+   theme_bw() + 
+  theme(axis.text.x = element_text(angle = 35, hjust = 1))
+
+ggsave("fl_sc.png", fl_sc)
+ggsave("fl_bp.png", fl_bp)
+
+# Exercise 6
+library(viridis)
+library(ggplot2)
+
+best_in_class <- mpg %>%
+  group_by(class) %>%
+  filter(row_number(desc(hwy)) == 1)
+
+
+
+
+Exercise6 <- ggplot(mpg, aes(displ, hwy)) +
+  geom_point(aes(colour = class), size = 4) +
+  geom_point(aes(color = class), size = 4, shape = 21, stroke = 1.5, fill = "white", data = best_in_class) +
+  ggrepel::geom_label_repel(aes(label = model, color = class), label.size = NA, fill = NA, data = best_in_class) +
+  labs(x = "Engine Displacement", y = "Miles per Gallon (highway)", color = "Vehicle Type" ) +
+  scale_colour_viridis_d() +
+  theme_bw() +
+  theme(panel.grid.minor = element_blank())
+
+ggsave("Exercise6plot.png", Exercise6)
+
+```
+
