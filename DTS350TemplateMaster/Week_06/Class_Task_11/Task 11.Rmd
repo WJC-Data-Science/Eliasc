@@ -1,0 +1,46 @@
+---
+title: "Task 11"
+output: 
+  html_document:
+    keep_md: TRUE
+    code_folding: hide
+---
+
+# Findings
+```{r}
+library(tidyverse)
+library(ggplot2)
+
+devtools::install_github("drsimonj/ourworldindata")
+
+finance_df <- ourworldindata::financing_healthcare
+
+head(finance_df)
+
+
+
+            
+            
+new_df <- finance_df %>% 
+  filter(year >= 1925 & country != 'NA') %>% 
+  group_by(year, continent) %>% 
+  summarise(avg_cont = mean(child_mort, na.rm = TRUE))
+
+new_df
+
+  
+
+by_continent <- ggplot(data = new_df) +
+  geom_point(mapping = aes(x = year, y = avg_cont, color = continent), size = 0.5) +
+  geom_path(mapping = aes(x = year, y = avg_cont, color = continent), size = 0.4) +
+  labs(x = 'Year', y = 'Average Continent Child Mortality', color = "Continent", title = 'Average Child Mortality by Continent') +
+  theme_bw()
+
+by_continent
+
+ggsave("by_continent.png", by_continent)
+
+```
+## Report
+I took the average child mortality data by continent and graphed in by year since 1925. It is clear to see that in just under a hundred years the child mortality rate has been steadily decreasing in all continents. Every continent has been able to cut their mortality rates by over half from 1925 which is really good. It is also interesting how NA started very high in 1925, and then finished near the lowest by present day. 
+I noticed that while the data says its by continent, the data is really by region. This is becuase there is just a group called 'Americas' and not 'North America' and 'South America.' I would like to see the data by actual continents and not just regions, becuase I believe South America would weigh heavely on the Americas region.
