@@ -1,0 +1,48 @@
+---
+title: "Task_12"
+output: 
+  html_document:
+    keep_md: TRUE
+---
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(readxl)
+install.packages("downloader")
+library(downloader)
+
+mess <- tempfile()
+mess
+
+download("https://github.com/WJC-Data-Science/DTS350/raw/master/messy_data.xlsx", mess,
+         mode = "wb")
+
+messy_data <- read_xlsx(mess, skip = 2, col_names = FALSE)
+
+head(messy_data)
+view(messy_data)
+
+tidy12a <- subset(messy_data, select = -c(3,4,6,7,9,10,12,13,15,16))
+  
+
+tidy12a
+
+tidy12b <- tidy12a %>% 
+  pivot_longer(c('...5','...8','...11','...14','...17'), names_to = 'Class', values_to = 'Grades')
+
+tidy12b
+
+df1 <- na.omit(tidy12b)
+
+
+df1
+
+df1_plot <- ggplot(data = df1) +
+  geom_bar(mapping = aes(x = Grades, fill = Grades)) +
+  facet_wrap(~Class)
+
+df1_plot
+
+head(df1, 20)
+```
+This vizualization shows how students are performing thorughout all the classes that involve R and Python. Students are performing the best in CS 241 (..5) and  MATH 325 (...11).
