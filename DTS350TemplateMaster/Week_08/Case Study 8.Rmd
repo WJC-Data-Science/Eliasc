@@ -1,0 +1,269 @@
+---
+title: "Case Study 7"
+output: 
+  html_document:
+    keep_md: TRUE
+    code_folding: hide
+---
+## Loading Data
+```{r}
+## Case Study 7
+
+library(tidyverse)
+library(haven)
+library(readr)
+library(readxl)
+library(downloader)
+library(measurements)
+
+xlsx1 <- tempfile()
+download("https://raw.githubusercontent.com/WJC-Data-Science/DTS350/master/Height.xlsx", xlsx1, mode = 'wb')
+
+ww_df <- read_xlsx(xlsx1, skip = 2)
+ww_df
+view(ww_df)
+
+tidy_ww <- ww_df %>% 
+  pivot_longer(c(`1800`:`2011`), names_to = 'Year_Real', values_to = 'height.cm')
+
+tidy_ww
+
+
+tidy_ww2 <- tidy_ww %>%
+  separate(Year_Real, into = c("century", "decade", "year"), sep = c(-2,-1), remove = FALSE) 
+tidy_ww2
+
+tidy_ww2$Year_Real <- as.numeric(tidy_ww2$Year_Real)
+tidy_ww2$century <- as.numeric(tidy_ww2$century)
+tidy_ww2$decade <- as.numeric(tidy_ww2$decade)
+tidy_ww2$year <- as.numeric(tidy_ww2$year)
+
+ww_inches <- tidy_ww2 %>% 
+  mutate(height.in = conv_unit(height.cm, 'cm', 'inch'))
+
+ww_inches
+
+ww_inches2 <- na.omit(ww_inches)
+
+ww_inches2
+
+tubheight <- ww_inches2[order(ww_inches2$Year_Real),]
+
+head(tubheight)
+
+###
+height_dta2 <- read_dta("https://github.com/WJC-Data-Science/DTS350/raw/master/germanprison.dta")
+height_dta2
+
+height_dta <- read_dta("https://raw.githubusercontent.com/WJC-Data-Science/DTS350/master/germanconscr.dta")
+height_dta
+
+height_csv <- read_csv("https://raw.githubusercontent.com/hadley/r4ds/master/data/heights.csv")
+height_csv
+
+
+sav1 <- tempfile()
+download("https://www.ssc.wisc.edu/nsfh/wave3/NSFH3%20Apr%202005%20release/main05022005.sav", sav1, mode = 'wb')
+height_sav <- read_sav(sav1)
+height_sav  
+
+
+
+
+library(foreign)
+
+temp <- tempfile()
+download("https://raw.githubusercontent.com/WJC-Data-Science/DTS350/master/Heights_south-east/B6090.DBF", temp, mode = 'wb')
+height_dbf <- read.dbf(temp)
+
+height_dbf
+
+```
+## Cleaning Data
+```{r}
+## Clean DTA
+
+dta1 <- height_dta %>% 
+  select(bdec, height)
+
+dta1
+
+dta2 <- dta1 %>% 
+  rename(birth_year = bdec) %>% 
+  rename(height.cm = height)
+
+dta2$height.in <- conv_unit(dta2$height.cm, 'cm', 'inch')
+
+dta2 <- add_column(dta2,study = "GermanConscr")
+
+dta2
+
+## Clean DTA2
+
+df1 <- height_dta2 %>% 
+  select(bdec, height)
+df1
+
+df2 <- df1 %>% 
+  rename(birth_year = bdec) %>% 
+  rename(height.cm = height)
+
+
+df2$height.in <- conv_unit(df2$height.cm, 'cm', 'inch')
+
+df2 <- add_column(df2,study = "GermanPrison")
+
+df2
+
+
+#Clean DBF
+clean_dbf <- height_dbf %>% 
+  select(SJ, CMETER)
+
+clean_dbf2 <- clean_dbf %>% 
+  rename(birth_year = SJ) %>% 
+  rename(height.cm = CMETER)
+
+head(clean_dbf2)
+
+clean_dbf2$height.in <- conv_unit(clean_dbf2$height.cm, 'cm','inch')
+
+head(clean_dbf2)
+
+clean_dbf2 <- add_column(clean_dbf2, study = "Southeast")
+
+head(clean_dbf2)
+
+## Clean CSV
+clean_csv <- height_csv %>% 
+  select(height)
+
+clean_csv
+
+clean_csv2 <- clean_csv %>% 
+  rename(height.in = height)
+
+head(clean_csv2)
+
+clean_csv2$height.cm <- conv_unit(clean_csv2$height.in, 'inch','cm')
+
+clean_csv2
+
+clean_csv2 <- add_column(clean_csv2, birth_year = 1950)
+
+
+head(clean_csv2)
+
+clean_csv2 <- add_column(clean_csv2, study = 'BLS')
+
+head(clean_csv2)
+
+clean_csv2 <- clean_csv2 %>% 
+  select(birth_year, height.cm, height.in, study)
+
+clean_csv2
+
+## Clean SAV
+clean_sav <- height_sav %>% 
+  select(DOBY, RT216F, RT216I)
+
+clean_sav
+
+clean_sav2 <- clean_sav %>% 
+  mutate(height.in = ((RT216F*12) + RT216I))
+
+clean_sav2
+
+clean_sav3 <- clean_sav2 %>% 
+  mutate(birth_year = 1900 + DOBY)
+
+clean_sav3
+
+clean_sav3 <- add_column(clean_sav3, study = 'Wisconsin')
+
+clean_sav3
+
+clean_sav3$height.cm <- conv_unit(clean_sav3$height.in, 'inch', 'cm')
+
+clean_sav3
+  
+clean_sav4 <- clean_sav3 %>% 
+  select(birth_year, height.in, height.cm, study)
+
+clean_sav4
+
+```
+## Bind the Data
+```{r}
+height_df <- bind_rows(dta2, df2, clean_dbf2, clean_csv2, clean_sav4)
+
+height_df  
+
+getwd()
+
+setwd("/Users/chaseelias/Documents/William Jewell/3.Jewell Junior/DTS 350/Eliasc/DTS350TemplateMaster/Week_08")
+
+getwd()
+
+saveRDS(tubheight, file = 'tubheight.Rds')
+saveRDS(height_df, file = 'height_df.rds')
+```
+## Plots
+```{r}
+germany <- tubheight %>% 
+  filter(`Continent, Region, Country` == "Germany")
+germany
+
+tub_data <- ggplot() +
+  geom_point(data = tubheight, mapping = aes(x = Year_Real, y = height.in), color = 'white') +
+  geom_point(data = germany, mapping = aes(x = Year_Real, y = height.in), color = 'red') +
+  theme_dark()
+
+tub_data
+
+##
+small_mult <- ggplot(data = height_df) +
+  geom_point(mapping = aes(x = birth_year, y = height.in)) +
+  facet_wrap(~study)
+
+small_mult
+
+wisc <- height_df %>% 
+  filter(study == 'Wisconsin')
+
+
+Wiscon <- ggplot(data = wisc) +
+  geom_point(mapping = aes(x = birth_year, y = height.in)) +
+  geom_smooth(mapping = aes(x = birth_year, y = height.in)) +
+  theme_bw()
+
+Wiscon
+
+
+SE <- height_df %>% 
+  filter(study == "Southeast")
+
+southeast_trend <- ggplot(data = SE) +
+  geom_point(mapping = aes(x = birth_year, y = height.in)) +
+  geom_smooth(mapping = aes(x = birth_year, y = height.in)) +
+  theme_bw()
+
+southeast_trend
+
+
+overall_trend <- ggplot(data = height_df) +
+  geom_point(mapping = aes(x = birth_year, y = height.in, color = study)) +
+  geom_smooth(mapping = aes(x = birth_year, y = height.in), color = 'red') +
+  theme_bw()
+
+overall_trend
+```
+The tub_data plot shows the tubheight dataset with Germany being highlighted in Red. The x axis is by decade and the y axis is by height in inches. You can see that Germany has a steady increase in height throughout the decades.
+
+The Wiscon graphic shows the overall trend in the Wisconsin survey. It didn't appear to have an increasing trend line.
+
+The southwest_trend flucuated a lot, but overall seemed to have an increasing trendline.
+
+The overall_trend was surprising to me. It doesn't seem like the trendline goes up much at all over time. There are data points in the Wisconsin survey that need to be removed because they don't make sense.
+
+Overall, the tub_data shows through Germany that people are increasingly getting taller, but the height_df shows no such trend.
