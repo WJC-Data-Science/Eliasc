@@ -1,0 +1,180 @@
+---
+title: "Task 13"
+output: 
+  html_document:
+    keep_md: TRUE
+    code_folding: hide
+---
+
+## Loading Data & Plots
+```{r}
+library(tidyverse)
+library(haven)
+library(readr)
+library(readxl)
+library(downloader)
+
+
+data_rds  <- read_rds(url("https://github.com/WJC-Data-Science/DTS350/raw/master/Dart_Expert_Dow_6month_anova/Dart_Expert_Dow_6month_anova.RDS"))
+
+data_dta  <- read_dta("https://github.com/WJC-Data-Science/DTS350/raw/master/Dart_Expert_Dow_6month_anova/Dart_Expert_Dow_6month_anova.dta")
+
+data_cvs  <- read_csv("https://raw.githubusercontent.com/WJC-Data-Science/DTS350/master/Dart_Expert_Dow_6month_anova/Dart_Expert_Dow_6month_anova.csv")
+
+sav <- tempfile()
+download("https://github.com/WJC-Data-Science/DTS350/raw/master/Dart_Expert_Dow_6month_anova/Dart_Expert_Dow_6month_anova.sav", sav, mode = "wb")
+dfsav <- read_sav(sav)
+
+
+xlsx <- tempfile()
+download("https://github.com/WJC-Data-Science/DTS350/raw/master/Dart_Expert_Dow_6month_anova/Dart_Expert_Dow_6month_anova.xlsx",xlsx, mode = "wb")
+dfxlsx <- read_xlsx(xlsx)
+
+
+all_equal(data_dta, dfsav, convert = TRUE)
+all_equal(data_dta, dfxlsx, convert = TRUE)
+all_equal(data_dta, data_rds, convert = TRUE)
+all_equal(data_rds, dfsav, convert = TRUE)
+all_equal(data_rds, dfxlsx, convert = TRUE)
+all_equal(dfxlsx, dfsav, convert = TRUE)
+
+
+view(data_rds)
+
+data_dta2 <- data_dta %>% 
+  separate(contest_period, into = c("Month/Month", "Year_end"), sep = -4)
+
+head(data_dta2)
+
+data_dta3 <- data_dta %>% 
+  separate(contest_period, into = c("Month/Month", "Year_end"), sep = -4) %>% 
+  group_by(Year_end, variable) %>% 
+  summarise(Average = mean(value, na.rm = TRUE))
+
+data_dta3
+
+
+## Graphics
+plot1 <- ggplot(data = data_dta2) +
+  geom_boxplot(mapping = aes(x = Year_end, y = value)) +
+  labs(x = "Year_end", y = "Values", color = "Variable", title = "Boxplot")
+
+plot1
+
+plot2 <- ggplot(data = data_dta3) +
+  geom_line(mapping = aes(x = Year_end, y = Average, color = variable, group = variable)) +
+  labs(x = "Year_end", y = "Values", color = "Variable", title = "Average Plot")
+
+plot2
+
+
+plot3 <- ggplot(data = data_dta2) + 
+  geom_jitter(mapping = aes(x = Year_end, y = value, color = variable))+
+  labs(x = "Year_end",
+       y = "Value",
+       color = "Variable",
+       title = "Jitter Plot")
+
+plot3
+
+
+plot4 <- ggplot(data = data_dta3) +
+  geom_line( mapping = aes(group = variable, x = Year_end , y = Average, color  = variable), size = 1.5)+
+  geom_jitter( data = data_dta2, mapping = aes(x = Year_end, y = value, color = variable))+
+  labs(x = "Year_end",
+       y = "Value",
+       color = "Variable",
+       title = "Jitter and Line Plot")
+
+plot4
+
+```
+- Plot 1 is a boxplot that is determined by year and value of return. Based on the plot, it appears that the data was most spread out in the early and late 1990s.
+
+- Plot 2 shows the average collected by year and grouped by the variables. The three variables have similiar trends, but DART decreased from 1996 to 1997 while the other two increased
+
+- Plot 3 is a jitter plot that shows the data by year and grouped by the variables. It shows that the variable DIJA is the most consistent
+
+- Plot 4 is a combination of Plot 2 and Plot 3
+
+
+
+
+
+## Tidy Data & Saving RDS
+```{r}
+data_dta4 <- data_dta2 %>% 
+  separate("Month/Month", into = c("month_begin", "month_end"), sep = "-")
+
+data_dta4
+
+
+saveRDS(data_dta4,"data_dta4.rds")
+```
+## 6 Month Returns Based on Year
+```{r}
+data_dta5 <- data_dta4 %>% 
+  group_by(Year_end) %>% 
+  summarise(sum_collected = sum(value, na.rm = TRUE))
+
+data_dta5
+
+plot6 <- ggplot(data = data_dta5) +
+  geom_point(mapping = aes(x = Year_end, y = sum_collected), color = 'blue') +
+  geom_path(mapping = aes(x = Year_end, y = sum_collected, group = 1), color = 'blue') +
+  labs(x = 'Year Ended',
+       y = 'Total Collected',
+       title = 'Six Months Returns by Year') +
+  theme_bw()
+
+plot6
+```
+- Plot 6 shows the sums for the 6 month collection periods when grouped by year. It shows the total collections dipped from 1992 to 1994 and again after 1997.
+
+## Final Table
+```{r}
+data_dta6 <- data_dta4 %>% 
+  mutate(month_end = replace(month_end, month_end == "Dec.", "December")) %>%
+  mutate(month_end = replace(month_end, month_end == "Febuary", "February")) %>%
+  select(-c(month_begin)) %>%
+  filter(variable == "DJIA") %>%
+  pivot_wider(names_from = Year_end, values_from = value) %>%
+  select(-c(variable)) %>%
+  mutate(month_end = replace(month_end, month_end == "January", 1)) %>%
+  mutate(month_end = replace(month_end, month_end == "February", 2)) %>%
+  mutate(month_end = replace(month_end, month_end == "March", 3)) %>%
+  mutate(month_end = replace(month_end, month_end == "April", 4)) %>%
+  mutate(month_end = replace(month_end, month_end == "May", 5)) %>%
+  mutate(month_end = replace(month_end, month_end == "June", 6)) %>%
+  mutate(month_end = replace(month_end, month_end == "July", 7)) %>%
+  mutate(month_end = replace(month_end, month_end == "August", 8)) %>%
+  mutate(month_end = replace(month_end, month_end == "September", 9)) %>%
+  mutate(month_end = replace(month_end, month_end == "October", 10)) %>%
+  mutate(month_end = replace(month_end, month_end == "November", 11)) %>%
+  mutate(month_end = replace(month_end, month_end == "December", 12)) 
+
+data_dta6
+
+data_dta6$month_end <- as.integer(data_dta6$month_end)  
+
+data_dta6 <- data_dta6[order(data_dta6$month_end),]  
+
+data_dta6  
+
+data_dta7 <- data_dta6 %>%
+  mutate(month_end = replace(month_end, month_end == 1,"January")) %>%
+  mutate(month_end = replace(month_end, month_end == 2,"February")) %>%
+  mutate(month_end = replace(month_end, month_end == 3,"March")) %>%
+  mutate(month_end = replace(month_end, month_end == 4,"April")) %>%
+  mutate(month_end = replace(month_end, month_end == 5,"May")) %>%
+  mutate(month_end = replace(month_end, month_end == 6,"June")) %>%
+  mutate(month_end = replace(month_end, month_end == 7,"July")) %>%
+  mutate(month_end = replace(month_end, month_end == 8,"August")) %>%
+  mutate(month_end = replace(month_end, month_end == 9,"September")) %>%
+  mutate(month_end = replace(month_end, month_end == 10,"October")) %>%
+  mutate(month_end = replace(month_end, month_end == 11,"November")) %>%
+  mutate(month_end = replace(month_end, month_end == 12,"December"))  
+
+head(data_dta7, 12) 
+```
+
