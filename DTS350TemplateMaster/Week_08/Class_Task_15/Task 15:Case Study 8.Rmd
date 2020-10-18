@@ -1,0 +1,103 @@
+---
+title: "Task 15"
+output: 
+  html_document:
+    keep_md: TRUE
+    code_folding: hide
+---
+# Task 15/ Case Study 8
+
+### Beginning Theory
+Before I looked at the data, I suspected that either the University of Missouri or Missouri State would be the college in Missouri to have the most success in professional baseball. However, much matters on how you determine success. I based my research on total accumulated revenue by college and by average salary of each college. My results are as follows.
+
+## R Script
+```{r}
+library(Lahman)
+library(blscrapeR)
+library(ggplot2)
+library(tidyverse)
+
+colleges <- Lahman::CollegePlaying
+schools <- Lahman::Schools
+playerinfo <- Lahman::People
+Salaries <- Lahman::Salaries
+
+
+college <- left_join(CollegePlaying, Master, by = "playerID")
+
+head(college)
+
+college1 <- left_join(college, Salaries, by = "playerID")
+
+head(college1)
+
+college2 <- left_join(college1, Schools, by = "schoolID")
+
+head(college2)
+
+college_df <- college2 %>% 
+  select(playerID, nameGiven, name_full, schoolID, state, salary, yearID.y)
+
+head(college_df)
+
+
+
+## Missouri Colleges
+missouri_colleges <- college_df %>% 
+  filter(state == "MO")
+
+head(missouri_colleges)
+
+
+
+### Do this after you correct for inflation
+total_salary <- missouri_colleges %>% 
+  group_by(name_full) %>% 
+  summarise(total_salary = sum(salary, na.rm = TRUE))
+head(total_salary)
+
+new_total <- total_salary %>% 
+  filter(total_salary > 0)
+
+
+
+averaged <- missouri_colleges %>% 
+  group_by(name_full) %>% 
+  summarise(total_salary = mean(salary, na.rm = TRUE))
+head(averaged)
+
+new_averaged <- na.omit(averaged)
+head(new_averaged)
+
+## Graphs
+Total_Revenue <- ggplot(data = new_total) +
+  geom_col(mapping = aes(x = reorder(name_full, total_salary), y = total_salary, fill = name_full)) +
+  theme_bw() +
+  theme(legend.position = 'none',
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.x = element_blank()) +
+  labs(x = 'College or University',
+       y = 'Total Salary in Dollars',
+       title = 'Accumulated Salary by School') +
+  coord_flip()
+
+Total_Revenue
+
+
+By_Average <- ggplot(data = new_averaged) +
+  geom_col(mapping = aes(x = reorder(name_full,total_salary), y = total_salary, fill = name_full)) +
+  theme_bw() +
+  theme(legend.position = 'none',
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.x = element_blank()) +
+  labs(x = 'College or University',
+       y = 'Averaged Salary in Dollars',
+       title = 'Averaged Salary by School') +
+  coord_flip()
+
+By_Average
+```
+## Results
+The Total_Revenue graphs shows me what I had expected. The University of Missouri and Missouri St. are the top two. This can also tell us that they have the most amount of players go to the professional level. I wasn't expecting their to be this big of different between the two.
+
+The By_Average graph shows that Maple Woods Community College is way above the other schools. This is because Albert Pujols attended there. So, if you base which college is best based on the most successful player, then it would be Maple Woods.
