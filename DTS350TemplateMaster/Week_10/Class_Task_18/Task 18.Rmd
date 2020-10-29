@@ -1,0 +1,69 @@
+---
+title: "Task 18"
+output: 
+  html_document:
+    keep_md: TRUE
+    code_folding: hide
+---
+# Task 18
+
+```{r}
+## Task 18
+
+library(tidyverse)
+library(ggplot2)
+library(lubridate)
+library(riem)
+
+data_w <- read_csv(url('https://github.com/WJC-Data-Science/DTS350/raw/master/carwash.csv'))
+head(data_w)
+
+data_w$time <- with_tz(data_w$time, tz = 'MST' )
+head(data_w)
+data_w$time <- ceiling_date(data_w$time, unit = 'hour')
+head(data_w)
+
+
+datw <- data_w %>% 
+  separate(time, into = c('date','hour'), sep = 11) %>% 
+  group_by(hour) 
+ 
+
+
+datw_totals <- datw %>% 
+  dplyr::group_by(date, hour) %>% 
+  dplyr::summarise(total_sales = sum(amount, na.rm = TRUE))
+
+
+
+
+temps <- riem_measures(station = "RXE",  date_start  = '2016-05-13',  date_end  = '2016-07-15')
+head(temps)
+temps$valid <- ymd_hms(temps$valid)
+temps$valid <- ceiling_date(temps$valid, unit = 'hour') 
+
+
+temps1 <- temps %>% 
+  dplyr::select(valid, tmpf) %>% 
+  dplyr::filter(!is.na(tmpf)) %>% 
+  separate(valid, into = c('date','hour'), sep = 11)
+
+
+
+temps2 <- temps1 %>% 
+  right_join(datw_totals) %>% 
+  dplyr::group_by(date, hour) 
+
+
+
+
+ggplot(data = temps2, mapping = aes(x = tmpf, y = total_sales)) +
+  geom_point() +
+  geom_smooth() +
+  facet_wrap(~hour) +
+  labs(y = 'Total Sales', x = 'Temperature in Fahrenheit', title = 'Sales by Hour and Temperatures') +
+  theme_bw()
+
+```
+## Analysis
+This grpahic shows that total sales for each hour aren't altered by temperature all that significantly. You would expect to see a gradually increasing line in each graph, but that is not the case.
