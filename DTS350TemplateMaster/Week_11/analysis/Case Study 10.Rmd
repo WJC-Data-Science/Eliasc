@@ -1,0 +1,121 @@
+---
+title: "Case Study 10"
+output: 
+  html_document:
+    keep_md: TRUE
+    code_folding: hide
+---
+# Case Study 10
+```{r}
+library(tidyverse)
+library(lubridate)
+
+data <- read_csv(url('https://github.com/WJC-Data-Science/DTS350/raw/master/sales.csv')) 
+head(data)
+
+data$Time <- ymd_hms(data$Time)
+data$Time <- ceiling_date(data$Time, unit = 'hour')
+data$date <- as.Date(data$Time) 
+data$time <- format(as.POSIXct(data$Time, format = '%Y:%m:%d %H:%M:%S'), '%H:%M:%S')
+
+```
+### Total Sales by Time
+```{r}
+summary_time <- data %>% 
+  dplyr::filter(Name != 'Missing') %>% 
+  dplyr::group_by(Name, time) %>% 
+  dplyr::summarise(total = sum(Amount, na.rm = TRUE))
+head(summary_time) 
+
+by_time <- ggplot(data = summary_time) +
+  geom_col(mapping = aes(x = total, y = time)) +
+  facet_wrap(~Name) +
+  labs(x = 'Sales by Hour', y = 'Hour of Day', title = 'Sales by Hour by Company') +
+  theme_bw()
+by_time
+```
+## By Company
+```{r}
+summary_company <- data %>% 
+  dplyr::filter(Name != 'Missing') %>%  
+  dplyr::group_by(Name) %>% 
+  dplyr::summarise(total = sum(Amount, na.rm = TRUE)) %>% 
+  dplyr::arrange(Name)
+summary_company
+
+
+by_company <- ggplot(data = summary_company) +
+  geom_col(mapping = aes(x = reorder(Name, -total), y = total, fill = Name)) +
+  labs(x = 'Name of Company', y = 'Total Sales', title = 'Total Sales by Company') +
+  theme_bw() +
+  theme(legend.position = 'none')
+by_company
+
+```
+### Sales by Weekday by Company
+```{r}
+weekday <- data 
+weekday$date <- weekdays(data$date)
+head(weekday)
+
+weekday$date_f <- factor(weekday$date, levels = c('Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'))
+head(weekday)
+
+summary_weekdays <- weekday %>% 
+  dplyr::filter(Name != 'Missing') %>% 
+  dplyr::group_by(Name, date) %>% 
+  dplyr::summarise(total = sum(Amount, na.rm = TRUE))
+head(summary_weekdays)
+
+by_weekdays <- ggplot(data = summary_weekdays) +
+  geom_col(mapping = aes(x = total, y = date)) +
+  facet_wrap(~Name) +
+  labs(x = 'Total Sales', y = "Day of Week", title = 'Total Sales by Day of Week') +
+  theme_bw()
+by_weekdays
+```
+### Sales by Week by Company
+```{r}
+weekly <- data
+weekly$date <- ceiling_date(weekly$date, unit = 'week')
+weekly$date <- strftime(weekly$date, format = '%V')
+
+summary_weekly <- weekly %>% 
+  dplyr::filter(Name != "Missing") %>% 
+  dplyr::group_by(Name, date) %>% 
+  dplyr::summarise(total = sum(Amount, na.rm = TRUE))
+
+
+by_weekly <- ggplot(data = summary_weekly) +
+  geom_col(mapping = aes(x = total, y = date)) +
+  facet_wrap(~Name) +
+  labs(x = 'Total Sales', y = "Week", title = 'Total Sales by Weekly Amounts') +
+  theme_bw()
+by_weekly
+```
+### Sales by Month by Company
+```{r}
+monthly <- data
+monthly$date <- ceiling_date(monthly$date, unit = 'month') 
+monthly$date <- strftime(monthly$date, format = '%B')
+
+
+summary_monthly <- monthly %>% 
+  dplyr::filter(Name != 'Missing') %>% 
+  dplyr::group_by(Name, date) %>% 
+  dplyr::summarise(total = sum(Amount, na.rm = TRUE))
+
+by_monthly <- ggplot(data = summary_monthly) +
+    geom_col(mapping = aes(x = total, y = date)) +
+    facet_wrap(~Name) +
+    labs(x = 'Total Sales', y = "Month", title = 'Total Sales by Month') +
+    theme_bw()
+by_monthly                   
+
+```
+## Comparison and Recommendation
+HotDiggity is doing the best out of the six companies. It is easy to see through each of the graphs shown, they are leading in each of the variables. All of the companies do the majority of thier business between 5 pm and 10 pm. ShortStop and SplashandDash do virtually no business during the late night hours, this is interesting given all the other coompies have sales past midnight. 
+
+The busiest day of the week varies depending on the company, although Thursdays and Fridays are generally the busiest. The weekly data shows that the weeks were genreally the same for each company. Except week 28 is an outlier, everyone's sales went up making me wonder what was happening that week. The monthly data shows consistancy except for every company decreases in June.
+
+I would recommend each company to focus their manpower on the hours of 5 pm to 10 pm especially towards the end of the week. This is when they tend to do the most amount of their business. I would also recommend that each company try to increase their sales on the weekends becuase this is when their sales really drop.
