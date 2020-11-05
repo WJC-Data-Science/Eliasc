@@ -1,0 +1,69 @@
+---
+title: "Task 21"
+output: 
+  html_document:
+    keep_md: TRUE
+    code_folding: hide
+---
+### Loading in Kroger Stock Prices
+```{r}
+library(tidyquant)
+library(tidyverse)
+library(dplyr)
+library(lubridate)
+library(timetk)
+library(dygraphs)
+
+
+x1 <- 'KR'
+end <- today() - days(1)
+start <- end - years(5)
+
+x1_prices <- tq_get(x1, get = 'stock.prices', from = start, to = end)
+head(x1_prices)
+
+kr_stock_prices <- x1_prices %>% 
+  select(symbol, date, adjusted) %>% 
+  pivot_wider(names_from = symbol, values_from = adjusted) %>% 
+  tk_xts(date_var = date)
+```
+### Plot for Kroger Stock Prices
+```{r}
+dygraph(kr_stock_prices, main = 'Kroger Stock Prices for the Past 5 Years') %>%
+  dySeries(fillGraph = TRUE) %>% 
+  dyHighlight(highlightCircleSize = 5., 
+              highlightSeriesBackgroundAlpha = 0.2,
+              hideOnMouseOut = FALSE) %>% 
+  dyOptions(axisLineColor = "black",
+            gridLineColor = "black") %>% 
+  dyRangeSelector(dateWindow = c("2015-11-04","2020-11-04")) 
+
+```
+
+
+### If $10,000 Were Invested 5 Years Ago
+```{r}
+two_years <- x1_prices %>% 
+  filter(date >= '2018-11-04')
+
+head(two_years)
+
+kr_stock_prices_twoyears <- two_years %>% 
+  select(symbol, date, adjusted) %>% 
+  pivot_wider(names_from = symbol, values_from = adjusted) %>% 
+  tk_xts(date_var = date)
+
+dygraph(kr_stock_prices_twoyears, main = 'If $10,000 Were Invested 2 Years Ago in Kroger') %>% 
+  dySeries(fillGraph = TRUE) %>% 
+  dyHighlight(highlightCircleSize = 5) %>% 
+  dyRebase(value = 10000) %>% 
+  dyAnnotation("2019-03-08", text = 'A', tooltip = 'Walmart and Target Post Best Numbers of Decade') %>% 
+  dyAnnotation("2020-03-05", text = 'B', tooltip = 'National Pandemic Declared') %>% 
+  dyRangeSelector(dateWindow = c("2018-11-04", "2020-11-04"))
+```
+
+
+### Report
+The first graph is of Kroger's stock prices over the past 5 years. I decided to include the fill feature becuase I believe it looks better. I changed the highlighting dot to size 5 given its over a long period of time and the feature makes it easier to see where your curser is on the graph. 
+
+The second graph is if you were to invest $10,000 into Kroger exactly 2 years ago to the day. They tend to decrease at point A. After doing some reasearch, I suspect that this is the point of time large retailers such as Target and Walmart took off with online grocery shopping. Point B is the national pandemic. Kroger flucuated a lot during this time, but has seemed to continue to increase over the big picture.
