@@ -1,0 +1,101 @@
+---
+title: "Case Study 11"
+output: 
+  html_document:
+    keep_md: TRUE
+    code_folding: hide
+---
+## Loading in Libraries
+```{r}
+library(tidyquant)
+library(tidyverse)
+library(dplyr)
+library(lubridate)
+library(timetk)
+library(dygraphs)
+```
+
+## Stock Data
+```{r}
+tickers_today <- c("CXW", "F", "GM", "JCP", "KR", "WDC", "NKE","T", "WDAY", "WFC", "WMT")
+start <- today() - years(5)
+
+todays_prices <- tq_get(tickers_today, get = 'stock.prices', from = start)
+head(todays_prices)
+
+matrix_prices <- todays_prices %>% 
+  select(symbol, date, adjusted) %>% 
+  pivot_wider(names_from = symbol, values_from = adjusted) %>% 
+  tk_xts(date_var = date)
+head(matrix_prices)
+
+```
+
+## Overall Stock Prices Past 5 Years
+```{r}
+dygraph(matrix_prices, main = 'Tickers Today') %>%
+  dySeries(fillGraph = FALSE) %>% 
+  dyHighlight(highlightCircleSize = 5., 
+              highlightSeriesBackgroundAlpha = 0.2,
+              hideOnMouseOut = FALSE) %>% 
+  dyOptions(axisLineColor = "black",
+            gridLineColor = "black") %>% 
+  dyRangeSelector() 
+
+```
+
+## Percent Change
+```{r}
+perc_change <- todays_prices %>% 
+  group_by(symbol) %>% 
+  mutate(percent_change_total = (adjusted/adjusted[1]-1)*100)
+
+head(perc_change)
+
+matrix_prices_perc <- perc_change %>% 
+  select(symbol, date, percent_change_total) %>% 
+  pivot_wider(names_from = symbol, values_from = percent_change_total) %>% 
+  tk_xts(date_var = date)
+
+dygraph(matrix_prices_perc, main = 'Percent Change') %>%
+  dySeries(fillGraph = FALSE) %>% 
+  dyHighlight(highlightCircleSize = 5., 
+              highlightSeriesBackgroundAlpha = 0.2,
+              hideOnMouseOut = FALSE) %>% 
+  dyOptions(axisLineColor = "black",
+            gridLineColor = "black") %>% 
+  dyRangeSelector()
+
+```
+
+## If $25,000 Were Invested 5 Years Ago
+```{r}
+dygraph(matrix_prices, main = 'If $25,000 Were Invested Into Each 5 Years Ago') %>% 
+  dySeries(fillGraph = FALSE) %>% 
+  dyHighlight(highlightCircleSize = 5., 
+              highlightSeriesBackgroundAlpha = 0.2,
+              hideOnMouseOut = FALSE) %>%
+  dyRebase(value = 25000)
+```
+
+## Volume
+```{r}
+volumes <- todays_prices %>% 
+  group_by(symbol, date, volume) %>% 
+  select(symbol, date, volume)
+head(volumes)
+
+ggplot() +
+  geom_line(data = volumes, mapping = aes(x = date, y = volume, color = symbol)) +
+  facet_wrap(~symbol, nrow = 3) +
+  labs(x = 'Date', y = 'Volume', title = 'Volumes For Each Stock') +
+  theme_bw() +
+  theme(legend.position = 'none')
+
+
+```
+
+## Analysis
+I chose to make graphs that showed the overall stock price, the percent change, if I had invested $25,000 into each stock, and the volume over the past 5 years. I chose to make interactive graphs for the stock price, percent chagne, and the if I had invested graphs because it makes it easeir to read, as well as shows you the numbers and dates. For the volumes, I made it using ggplot2() and faceted by the symbols.
+
+After analyzing the data, I would invest in WMT, GM, WFC, NKE, and WDC. I would evenly distrubte the 25,000 dollars amongst the stocks. An investor would use the volume of a stock and compare it to the price change. If the price is going up as well as the volume, people are wanting to buy the stock, and vice versa.
