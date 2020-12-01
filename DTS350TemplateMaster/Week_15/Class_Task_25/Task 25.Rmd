@@ -1,0 +1,45 @@
+---
+title: "Task 25"
+output: 
+  html_document:
+    keep_md: TRUE
+    code_folding: hide
+---
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(gganimate)
+library(gifski)
+
+
+ggplot(mtcars, aes(factor(cyl), mpg)) +
+  geom_boxplot() +
+  # Here comes the gganimate code
+  transition_states(
+    gear,
+    transition_length = 2,
+    state_length = 1
+  ) +
+  enter_fade() +
+  exit_shrink() +
+  ease_aes('sine-in-out')
+
+
+pgatour <- read_csv("pgaTourData2.csv")
+
+
+
+new_pga <- pgatour %>% 
+  filter(`SG:OTT` >= 0.9)
+
+ggplot(new_pga, aes(`Player Name`, `Avg Distance`), size = ) +
+  geom_point() +
+  theme_bw() +
+  # gganimate specific bits:
+  labs(title = 'Year: {frame_time}', x = 'Player', y = 'Average Distnace') +
+  transition_time(Year) +
+  ease_aes('linear')
+
+```
+
